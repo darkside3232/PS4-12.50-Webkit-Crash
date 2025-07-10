@@ -16,7 +16,7 @@
     padding:20px 40px; font-size:24px; background:#0f0; color:#000; border:none; border-radius:10px; cursor:pointer;
   }
   #instruction {
-    display:none; position:absolute; top:55%; left:50%; transform:translate(-50%,-50%);
+    display:none; position:absolute; top:45%; left:50%; transform:translate(-50%,-50%);
     width:100%; font-size:54px; animation:rgbShift 3s linear infinite;
   }
   @keyframes rgbShift {
@@ -66,40 +66,8 @@
     background:#060; color:#fff;
   }
 </style>
-</head>
-<body>
-<h1 id="title">PS4 12.50 WEBKIT CRASH TEST By Çınar Güney</h1>
-<button id="startBtn" onclick="start()">Start</button>
-<div id="instruction">Press OPTIONS and Refresh the Page</div>
-<div class="ellieLove" id="ellieLove">Ellie Çınarın Karısı</div>
-
-<!-- Dil ve Tema Seçici -->
-<div id="languageSelector">
-  <select id="lang" onchange="changeLang()">
-    <option value="tr">Türkçe</option>
-    <option value="en" selected>English</option>
-    <option value="es">Español</option>
-    <option value="fr">Français</option>
-    <option value="de">Deutsch</option>
-    <option value="it">Italiano</option>
-    <option value="ru">Русский</option>
-    <option value="ar">العربية</option>
-    <option value="zh">中文</option>
-    <option value="ja">日本語</option>
-    <option value="ko">한국어</option>
-    <option value="pt">Português</option>
-  </select>
-  <button id="lightBtn" class="themeBtn" onclick="setTheme('light')">Light Theme</button>
-  <button id="darkBtn" class="themeBtn active" onclick="setTheme('dark')">Dark Theme</button>
-</div>
-
-<!-- ✅ Online Kullanıcı Sayacı -->
-<div id="onlineUsers" style="position:fixed;bottom:20px;right:20px;font-size:16px;color:#0f0;font-family:monospace;">
-  🟢 Aktif kullanıcılar: <span id="userCount">1</span>
-</div>
-
 <script>
-const translations = {
+const translations={
   tr:{title:"PS4 12.50 WEBKIT CRASH TEST By Çınar Güney",startBtn:"Başlat",instruction:"OPTIONS tuşuna bas ve sayfayı yenile",ellieLove:"Ellie Çınarın Karısı",lightTheme:"Beyaz Tema",darkTheme:"Siyah Tema"},
   en:{title:"PS4 12.50 WEBKIT CRASH TEST By Çınar Güney",startBtn:"Start",instruction:"Press OPTIONS and Refresh the Page",ellieLove:"Ellie, Çınar's Wife",lightTheme:"Light Theme",darkTheme:"Dark Theme"},
   es:{title:"PRUEBA DE FALLA WEBKIT PS4 12.50 Por Çınar Güney",startBtn:"Iniciar",instruction:"Presiona OPTIONS y refresca la página",ellieLove:"Ellie, esposa de Çınar",lightTheme:"Tema Claro",darkTheme:"Tema Oscuro"},
@@ -159,16 +127,31 @@ document.addEventListener('DOMContentLoaded',()=>{
   select.value=userLang;
   changeLang();
   setTheme(localStorage.getItem("theme")||"dark");
-
-  // ✅ Online kullanıcı sayacı başlat
-  let userCount = Math.floor(Math.random() * 10) + 1;
-  document.getElementById("userCount").innerText = userCount;
-  setInterval(() => {
-    const change = Math.random() > 0.5 ? 1 : -1;
-    userCount = Math.max(1, userCount + change);
-    document.getElementById("userCount").innerText = userCount;
-  }, 4000);
 });
 </script>
+</head>
+<body>
+<h1 id="title">PS4 12.50 WEBKIT CRASH TEST By Çınar Güney</h1>
+<button id="startBtn" onclick="start()">Start</button>
+<div id="instruction">Press OPTIONS and Refresh the Page</div>
+<div class="ellieLove" id="ellieLove">Ellie Çınarın Karısı</div>
+<div id="languageSelector">
+  <select id="lang" onchange="changeLang()">
+    <option value="tr">Türkçe</option>
+    <option value="en" selected>English</option>
+    <option value="es">Español</option>
+    <option value="fr">Français</option>
+    <option value="de">Deutsch</option>
+    <option value="it">Italiano</option>
+    <option value="ru">Русский</option>
+    <option value="ar">العربية</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語</option>
+    <option value="ko">한국어</option>
+    <option value="pt">Português</option>
+  </select>
+  <button id="lightBtn" class="themeBtn" onclick="setTheme('light')">Light Theme</button>
+  <button id="darkBtn" class="themeBtn active" onclick="setTheme('dark')">Dark Theme</button>
+</div>
 </body>
 </html>
