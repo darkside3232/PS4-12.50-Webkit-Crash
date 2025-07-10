@@ -1,12 +1,7 @@
 # PS4 12.50 WEBKIT Crash Test
 
 A simple web page designed to test the PS4 12.50 WebKit crash vulnerability.
-
-## Features
-
-- Fullscreen start button  
-- Multi-language selector  
-- Light and dark theme toggle  
+  
 
 ## Usage
 
@@ -17,6 +12,8 @@ A simple web page designed to test the PS4 12.50 WebKit crash vulnerability.
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+https://darkside3232.github.io/PS4-12.50-Webkit-Crash/
 
 ---
 
