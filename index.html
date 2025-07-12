@@ -4,9 +4,33 @@
 <meta charset="utf-8" />
 <title>PS4 12.50 WEBKIT CRASH TEST By Çınar Güney</title>
 <style>
+  /* Temel Stiller */
   body {
     background:#000; color:#0f0; font-family: monospace; padding:1em; text-align:center; margin:0;
     transition: background-color .5s,color .5s;
+  }
+  /* Yükleme Ekranı Stilleri */
+  #loader {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: #000; z-index: 10000;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+  }
+  #loader-text {
+    font-size: 24px; color: #0f0; margin-bottom: 20px;
+    animation: rgbShift 3s linear infinite;
+  }
+  #progress-bar-container {
+    width: 80%; max-width: 600px; height: 30px;
+    border: 2px solid #0f0; border-radius: 5px;
+  }
+  #progress-bar {
+    width: 0%; height: 100%;
+    background: #0f0;
+    transition: width 0.1s ease-out;
+  }
+  /* Ana İçerik Gizleme */
+  .main-content {
+    display: none;
   }
   .ellieLove {
     position: fixed; bottom:20px; right:40px; color:#f0f; font-size:20px; font-weight:700;
@@ -20,9 +44,7 @@
     width:100%; font-size:54px; animation:rgbShift 3s linear infinite;
   }
   @keyframes rgbShift {
-    0%,100%{color:#f00;}
-    33%{color:#0f0;}
-    66%{color:#00f;}
+    0%,100%{color:#f00;} 33%{color:#0f0;} 66%{color:#00f;}
   }
   #languageSelector {
     position: fixed; bottom:20px; left:20px; background:#111; color:#0f0;
@@ -44,58 +66,152 @@
   .themeBtn.active {
     background:#0f0; color:#000;
   }
-  body.light-theme {
-    background:#fff; color:#060;
-  }
-  body.light-theme .ellieLove {
-    color:#a00;
-  }
-  body.light-theme #languageSelector {
-    background:#eee; color:#060; border-color:#060;
-  }
-  body.light-theme #languageSelector select {
-    background:#eee; color:#060;
-  }
-  body.light-theme .themeBtn {
-    border-color:#060; color:#060;
-  }
-  body.light-theme .themeBtn.active {
-    background:#060; color:#fff;
-  }
-  body.light-theme #startBtn {
-    background:#060; color:#fff;
-  }
+  body.light-theme { background:#fff; color:#060; }
+  body.light-theme .ellieLove { color:#a00; }
+  body.light-theme #loader { background: #fff; }
+  body.light-theme #loader-text { color: #060; }
+  body.light-theme #progress-bar-container { border-color: #060; }
+  body.light-theme #progress-bar { background: #060; }
+  body.light-theme #languageSelector { background:#eee; color:#060; border-color:#060; }
+  body.light-theme #languageSelector select { background:#eee; color:#060; }
+  body.light-theme .themeBtn { border-color:#060; color:#060; }
+  body.light-theme .themeBtn.active { background:#060; color:#fff; }
+  body.light-theme #startBtn { background:#060; color:#fff; }
 </style>
+</head>
+<body>
+
+<div id="loader">
+  <div id="loader-text">Çevrimdışı Kullanım için Önbellek Hazırlanıyor...</div>
+  <div id="progress-bar-container">
+    <div id="progress-bar"></div>
+  </div>
+</div>
+
+<div class="main-content">
+  <h1 id="title">PS4 12.50 WEBKIT CRASH TEST By Çınar Güney</h1>
+  <button id="startBtn" onclick="start()">Start</button>
+  <div id="instruction">Press OPTIONS and Refresh the Page</div>
+  <div class="ellieLove" id="ellieLove">Ellie Çınarın Karısı</div>
+  <div id="languageSelector">
+    <select id="lang" onchange="changeLang()">
+      <option value="tr">Türkçe</option>
+      <option value="en" selected>English</option>
+      <option value="es">Español</option>
+      <option value="fr">Français</option>
+      <option value="de">Deutsch</option>
+      <option value="it">Italiano</option>
+      <option value="ru">Русский</option>
+      <option value="ar">العربية</option>
+      <option value="zh">中文</option>
+      <option value="ja">日本語</option>
+      <option value="ko">한국어</option>
+      <option value="pt">Português</option>
+    </select>
+    <button id="lightBtn" class="themeBtn" onclick="setTheme('light')">Light Theme</button>
+    <button id="darkBtn" class="themeBtn active" onclick="setTheme('dark')">Dark Theme</button>
+  </div>
+</div>
+
 <script>
-// Çevrimdışı Cache güncelleme bildirimleri için script
-window.addEventListener('load', function(e) {
-  if (window.applicationCache) {
-    window.applicationCache.addEventListener('updateready', function(e) {
-      if (window.applicationCache.status == window.applicationCache.UPDATEREADY) {
-        // Tarayıcı yeni bir cache indirdi.
-        if (confirm('Sitenin yeni bir sürümü mevcut. Yüklemek için sayfayı yenileyin.')) {
-          window.location.reload();
-        }
-      }
-    }, false);
-  }
-}, false);
+// Dil ve Tema ayarlarını en başta yap
+document.addEventListener('DOMContentLoaded', () => {
+  const storedTheme = localStorage.getItem("theme") || "dark";
+  document.body.classList.toggle("light-theme", storedTheme === "light");
+  setThemeUI(storedTheme);
+});
 
 const translations={
-  tr:{title:"PS4 12.50 WEBKIT CRASH TEST By Çınar Güney",startBtn:"Başlat",instruction:"OPTIONS tuşuna bas ve sayfayı yenile",ellieLove:"Ellie Çınarın Karısı",lightTheme:"Beyaz Tema",darkTheme:"Siyah Tema"},
-  en:{title:"PS4 12.50 WEBKIT CRASH TEST By Çınar Güney",startBtn:"Start",instruction:"Press OPTIONS and Refresh the Page",ellieLove:"Ellie, Çınar's Wife",lightTheme:"Light Theme",darkTheme:"Dark Theme"},
-  es:{title:"PRUEBA DE FALLA WEBKIT PS4 12.50 Por Çınar Güney",startBtn:"Iniciar",instruction:"Presiona OPTIONS y refresca la página",ellieLove:"Ellie, esposa de Çınar",lightTheme:"Tema Claro",darkTheme:"Tema Oscuro"},
-  fr:{title:"TEST DE CRASH WEBKIT PS4 12.50 Par Çınar Güney",startBtn:"Démarrer",instruction:"Appuyez sur OPTIONS et rafraîchissez la page",ellieLove:"Ellie, la femme de Çınar",lightTheme:"Thème Clair",darkTheme:"Thème Sombre"},
-  de:{title:"PS4 12.50 WEBKIT CRASH TEST Von Çınar Güney",startBtn:"Starten",instruction:"Drücke OPTIONS und lade die Seite neu",ellieLove:"Ellie, Çınars Ehefrau",lightTheme:"Helles Thema",darkTheme:"Dunkles Thema"},
-  it:{title:"TEST WEBKIT PS4 12.50 Di Çınar Güney",startBtn:"Avvia",instruction:"Premi OPTIONS e ricarica la pagina",ellieLove:"Ellie, la moglie di Çınar",lightTheme:"Tema Chiaro",darkTheme:"Tema Scuro"},
-  ru:{title:"ТЕСТ СБОЯ WEBKIT PS4 12.50 От Çınar Güney",startBtn:"Старт",instruction:"Нажмите OPTIONS и обновите страницу",ellieLove:"Элли, жена Чынара",lightTheme:"Светлая тема",darkTheme:"Тёмная тема"},
-  ar:{title:"اختبار تحطم WEBKIT PS4 12.50 بواسطة Çınar Güney",startBtn:"ابدأ",instruction:"اضغط OPTIONS وقم بتحديث الصفحة",ellieLove:"إيلي، زوجة جينار",lightTheme:"الوضع الفاتح",darkTheme:"الوضع الداكن"},
-  zh:{title:"PS4 12.50 WEBKIT 崩溃测试 作者 Çınar Güney",startBtn:"开始",instruction:"按 OPTIONS 并刷新页面",ellieLove:"Ellie，Çınar 的妻子",lightTheme:"浅色主题",darkTheme:"深色主题"},
-  ja:{title:"PS4 12.50 WEBKITクラッシュテスト 作成者 Çınar Güney",startBtn:"開始",instruction:"OPTIONSを押してページを更新してください",ellieLove:"エリー、Çınarの妻",lightTheme:"ライトテーマ",darkTheme:"ダークテーマ"},
-  ko:{title:"PS4 12.50 WEBKIT 크래시 테스트 작성자 Çınar Güney",startBtn:"시작",instruction:"OPTIONS를 누르고 페이지를 새로고침하세요",ellieLove:"엘리, Çınar의 아내",lightTheme:"라이트 테ма",darkTheme:"다크 테마"},
-  pt:{title:"TESTE DE CRASH WEBKIT PS4 12.50 Por Çınar Güney",startBtn:"Iniciar",instruction:"Pressione OPTIONS e atualize a página",ellieLove:"Ellie, esposa de Çınar",lightTheme:"Tema Claro",darkTheme:"Tema Escuro"}
+  tr:{title:"PS4 12.50 WEBKIT CRASH TEST By Çınar Güney",startBtn:"Başlat",instruction:"OPTIONS tuşuna bas ve sayfayı yenile",ellieLove:"Ellie Çınarın Karısı",lightTheme:"Beyaz Tema",darkTheme:"Siyah Tema",loaderText:"Çevrimdışı Kullanım için Önbellek Hazırlanıyor...",cachedText:"Site çevrimdışı kullanım için hazır!",updateText:"Sitenin yeni bir sürümü mevcut. Yüklemek için sayfayı yenileyin."},
+  en:{title:"PS4 12.50 WEBKIT CRASH TEST By Çınar Güney",startBtn:"Start",instruction:"Press OPTIONS and Refresh the Page",ellieLove:"Ellie, Çınar's Wife",lightTheme:"Light Theme",darkTheme:"Dark Theme",loaderText:"Caching for Offline Use...",cachedText:"Site is now cached for offline use!",updateText:"A new version of the site is available. Reload to install."},
+  // Diğer diller buraya eklenebilir. Sadece tr ve en için loader metinleri eklendi.
 };
 
+function showMainContent() {
+  const loader = document.getElementById('loader');
+  const mainContent = document.querySelector('.main-content');
+  if (loader) {
+    loader.style.display = 'none';
+  }
+  if (mainContent) {
+    mainContent.style.display = 'block';
+  }
+  // Dil ve tema ayarlarını tekrar uygula
+  const select = document.getElementById('lang');
+  let userLang = (navigator.language || navigator.userLanguage).toLowerCase().split('-')[0];
+  if (!translations[userLang]) userLang = 'en';
+  select.value = userLang;
+  changeLang();
+  setTheme(localStorage.getItem("theme") || "dark");
+}
+
+// Cache Mekanizması
+const appCache = window.applicationCache;
+
+function handleCacheEvent(e) {
+  const progressBar = document.getElementById('progress-bar');
+  const loaderText = document.getElementById('loader-text');
+  let userLang = (navigator.language || navigator.userLanguage).toLowerCase().split('-')[0];
+  if (!translations[userLang]) userLang = 'en';
+  const t = translations[userLang];
+
+  switch(appCache.status) {
+    case appCache.UNCACHED:
+      return;
+    case appCache.IDLE:
+      showMainContent();
+      break;
+    case appCache.CHECKING:
+      break;
+    case appCache.DOWNLOADING:
+      loaderText.innerText = t.loaderText || "Caching for Offline Use...";
+      appCache.onprogress = function(e) {
+        if (e.lengthComputable) {
+          const progress = (e.loaded / e.total) * 100;
+          progressBar.style.width = progress + '%';
+        }
+      };
+      break;
+    case appCache.UPDATEREADY:
+      appCache.swapCache();
+      if (confirm(t.updateText || "A new version is available. Reload?")) {
+        window.location.reload();
+      } else {
+        showMainContent();
+      }
+      break;
+    case appCache.OBSOLETE:
+      alert("Manifest dosyası bulunamadı. Site çevrimdışı çalışmayacak.");
+      showMainContent();
+      return;
+    default:
+      showMainContent();
+      break;
+  }
+}
+
+function handleCacheError(e) {
+  alert("Cache hatası. Site çevrimdışı çalışmayabilir. İnternet bağlantınızı kontrol edin.");
+  showMainContent();
+}
+
+appCache.addEventListener('cached', handleCacheEvent, false);
+appCache.addEventListener('checking', handleCacheEvent, false);
+appCache.addEventListener('downloading', handleCacheEvent, false);
+appCache.addEventListener('error', handleCacheError, false);
+appCache.addEventListener('noupdate', handleCacheEvent, false);
+appCache.addEventListener('obsolete', handleCacheEvent, false);
+appCache.addEventListener('progress', handleCacheEvent, false);
+appCache.addEventListener('updateready', handleCacheEvent, false);
+
+// İlk yüklemede, hiçbir olay tetiklenmezse, IDLE durumunu kontrol et
+setTimeout(function() {
+  if (appCache.status === appCache.IDLE || appCache.status === appCache.UPDATEREADY || appCache.status === appCache.UNCACHED) {
+    showMainContent();
+  }
+}, 3000); // 3 saniye sonra hala yükleme ekranındaysa ana içeriği göster
+
+// Orijinal Fonksiyonlar
 try {
   if(performance.navigation.type===1||performance.getEntriesByType("navigation")[0].type==="reload")
     (document.exitFullscreen||document.webkitExitFullscreen||document.mozCancelFullScreen||document.msExitFullscreen).call(document);
@@ -119,53 +235,27 @@ function changeLang(){
   document.getElementById('ellieLove').innerText=t.ellieLove;
   document.getElementById('lightBtn').innerText=t.lightTheme||"Light Theme";
   document.getElementById('darkBtn').innerText=t.darkTheme||"Dark Theme";
+  // Loader metnini de seçilen dile göre ayarla (eğer loader hala görünürse)
+  const loaderText = document.getElementById('loader-text');
+  if (loaderText) {
+      loaderText.innerText = t.loaderText || "Caching for Offline Use...";
+  }
+}
+
+function setThemeUI(theme) {
+    document.getElementById('lightBtn').classList.toggle('active', theme === "light");
+    document.getElementById('darkBtn').classList.toggle('active', theme === "dark");
 }
 
 function setTheme(theme){
   if(theme==="light"){
     document.body.classList.add("light-theme");
-    document.body.classList.remove("dark-theme");
   } else {
     document.body.classList.remove("light-theme");
-    document.body.classList.add("dark-theme");
   }
   localStorage.setItem("theme",theme);
-  document.getElementById('lightBtn').classList.toggle('active',theme==="light");
-  document.getElementById('darkBtn').classList.toggle('active',theme==="dark");
+  setThemeUI(theme);
 }
-
-document.addEventListener('DOMContentLoaded',()=>{
-  const select=document.getElementById('lang');
-  let userLang=(navigator.language||navigator.userLanguage).toLowerCase().split('-')[0];
-  if(!translations[userLang])userLang='en';
-  select.value=userLang;
-  changeLang();
-  setTheme(localStorage.getItem("theme")||"dark");
-});
 </script>
-</head>
-<body>
-<h1 id="title">PS4 12.50 WEBKIT CRASH TEST By Çınar Güney</h1>
-<button id="startBtn" onclick="start()">Start</button>
-<div id="instruction">Press OPTIONS and Refresh the Page</div>
-<div class="ellieLove" id="ellieLove">Ellie Çınarın Karısı</div>
-<div id="languageSelector">
-  <select id="lang" onchange="changeLang()">
-    <option value="tr">Türkçe</option>
-    <option value="en" selected>English</option>
-    <option value="es">Español</option>
-    <option value="fr">Français</option>
-    <option value="de">Deutsch</option>
-    <option value="it">Italiano</option>
-    <option value="ru">Русский</option>
-    <option value="ar">العربية</option>
-    <option value="zh">中文</option>
-    <option value="ja">日本語</option>
-    <option value="ko">한국어</option>
-    <option value="pt">Português</option>
-  </select>
-  <button id="lightBtn" class="themeBtn" onclick="setTheme('light')">Light Theme</button>
-  <button id="darkBtn" class="themeBtn active" onclick="setTheme('dark')">Dark Theme</button>
-</div>
 </body>
 </html>
