@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" manifest="cache.manifest">
+<html lang="en">
 <head>
 <meta charset="utf-8" />
 <title>PS4 12.50 WEBKIT CRASH TEST By Çınar Güney</title>
@@ -7,30 +7,32 @@
   /* Temel Stiller */
   body {
     background:#000; color:#0f0; font-family: monospace; padding:1em; text-align:center; margin:0;
-    transition: background-color .5s,color .5s;
+    transition: background-color .5s,color .5s; overflow: hidden;
   }
-  /* Yükleme Ekranı Stilleri */
-  #loader {
+  /* Yükleme Menüsü Stilleri */
+  #loader-menu {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: #000; z-index: 10000;
     display: flex; flex-direction: column; justify-content: center; align-items: center;
+    transition: opacity 0.5s ease-out; opacity: 1;
   }
-  #loader-text {
-    font-size: 24px; color: #0f0; margin-bottom: 20px;
+  #loader-menu.hidden {
+    opacity: 0; pointer-events: none;
+  }
+  #status-icon {
+    font-size: 50px; margin-bottom: 20px;
+  }
+  #status-message {
+    font-size: 24px; color: #0f0;
     animation: rgbShift 3s linear infinite;
   }
-  #progress-bar-container {
-    width: 80%; max-width: 600px; height: 30px;
-    border: 2px solid #0f0; border-radius: 5px;
-  }
-  #progress-bar {
-    width: 0%; height: 100%;
-    background: #0f0;
-    transition: width 0.1s ease-out;
-  }
-  /* Ana İçerik Gizleme */
+  /* Ana İçerik Başlangıçta Gizli */
   .main-content {
-    display: none;
+    visibility: hidden; opacity: 0;
+    transition: opacity 0.5s ease-in;
+  }
+  .main-content.visible {
+    visibility: visible; opacity: 1;
   }
   .ellieLove {
     position: fixed; bottom:20px; right:40px; color:#f0f; font-size:20px; font-weight:700;
@@ -43,9 +45,7 @@
     display:none; position:absolute; top:45%; left:50%; transform:translate(-50%,-50%);
     width:100%; font-size:54px; animation:rgbShift 3s linear infinite;
   }
-  @keyframes rgbShift {
-    0%,100%{color:#f00;} 33%{color:#0f0;} 66%{color:#00f;}
-  }
+  @keyframes rgbShift { 0%,100%{color:#f00;} 33%{color:#0f0;} 66%{color:#00f;} }
   #languageSelector {
     position: fixed; bottom:20px; left:20px; background:#111; color:#0f0;
     border:1px solid #0f0; border-radius:8px; padding:5px 10px;
@@ -56,22 +56,12 @@
     background:#111; color:#0f0; border:none;
     font-family: monospace; font-size:14px; cursor:pointer; outline:none;
   }
-  .themeBtn {
-    padding:4px 10px; font-family: monospace; font-size:14px;
-    border:1px solid #0f0; border-radius:5px;
-    background:transparent; color:#0f0;
-    cursor:pointer; user-select:none;
-    transition: background-color .3s,color .3s;
-  }
-  .themeBtn.active {
-    background:#0f0; color:#000;
-  }
+  .themeBtn { padding:4px 10px; font-family: monospace; font-size:14px; border:1px solid #0f0; border-radius:5px; background:transparent; color:#0f0; cursor:pointer; user-select:none; transition: background-color .3s,color .3s; }
+  .themeBtn.active { background:#0f0; color:#000; }
   body.light-theme { background:#fff; color:#060; }
   body.light-theme .ellieLove { color:#a00; }
-  body.light-theme #loader { background: #fff; }
-  body.light-theme #loader-text { color: #060; }
-  body.light-theme #progress-bar-container { border-color: #060; }
-  body.light-theme #progress-bar { background: #060; }
+  body.light-theme #loader-menu { background: #fff; }
+  body.light-theme #status-message { color: #060; }
   body.light-theme #languageSelector { background:#eee; color:#060; border-color:#060; }
   body.light-theme #languageSelector select { background:#eee; color:#060; }
   body.light-theme .themeBtn { border-color:#060; color:#060; }
@@ -81,11 +71,9 @@
 </head>
 <body>
 
-<div id="loader">
-  <div id="loader-text">Çevrimdışı Kullanım için Önbellek Hazırlanıyor...</div>
-  <div id="progress-bar-container">
-    <div id="progress-bar"></div>
-  </div>
+<div id="loader-menu">
+  <div id="status-icon">🔄</div>
+  <div id="status-message">Başlatılıyor...</div>
 </div>
 
 <div class="main-content">
@@ -114,148 +102,72 @@
 </div>
 
 <script>
-// Dil ve Tema ayarlarını en başta yap
-document.addEventListener('DOMContentLoaded', () => {
-  const storedTheme = localStorage.getItem("theme") || "dark";
-  document.body.classList.toggle("light-theme", storedTheme === "light");
-  setThemeUI(storedTheme);
-});
+// Service Worker Mantığı
+const statusIcon = document.getElementById('status-icon');
+const statusMessage = document.getElementById('status-message');
+const loaderMenu = document.getElementById('loader-menu');
+const mainContent = document.querySelector('.main-content');
 
-const translations={
-  tr:{title:"PS4 12.50 WEBKIT CRASH TEST By Çınar Güney",startBtn:"Başlat",instruction:"OPTIONS tuşuna bas ve sayfayı yenile",ellieLove:"Ellie Çınarın Karısı",lightTheme:"Beyaz Tema",darkTheme:"Siyah Tema",loaderText:"Çevrimdışı Kullanım için Önbellek Hazırlanıyor...",cachedText:"Site çevrimdışı kullanım için hazır!",updateText:"Sitenin yeni bir sürümü mevcut. Yüklemek için sayfayı yenileyin."},
-  en:{title:"PS4 12.50 WEBKIT CRASH TEST By Çınar Güney",startBtn:"Start",instruction:"Press OPTIONS and Refresh the Page",ellieLove:"Ellie, Çınar's Wife",lightTheme:"Light Theme",darkTheme:"Dark Theme",loaderText:"Caching for Offline Use...",cachedText:"Site is now cached for offline use!",updateText:"A new version of the site is available. Reload to install."},
-  // Diğer diller buraya eklenebilir. Sadece tr ve en için loader metinleri eklendi.
-};
+function updateStatus(icon, message) {
+  if (statusIcon) statusIcon.innerText = icon;
+  if (statusMessage) statusMessage.innerText = message;
+}
 
 function showMainContent() {
-  const loader = document.getElementById('loader');
-  const mainContent = document.querySelector('.main-content');
-  if (loader) {
-    loader.style.display = 'none';
-  }
-  if (mainContent) {
-    mainContent.style.display = 'block';
-  }
-  // Dil ve tema ayarlarını tekrar uygula
-  const select = document.getElementById('lang');
-  let userLang = (navigator.language || navigator.userLanguage).toLowerCase().split('-')[0];
-  if (!translations[userLang]) userLang = 'en';
-  select.value = userLang;
-  changeLang();
-  setTheme(localStorage.getItem("theme") || "dark");
+    loaderMenu.classList.add('hidden');
+    mainContent.classList.add('visible');
+    document.body.style.overflow = 'auto';
 }
 
-// Cache Mekanizması
-const appCache = window.applicationCache;
-
-function handleCacheEvent(e) {
-  const progressBar = document.getElementById('progress-bar');
-  const loaderText = document.getElementById('loader-text');
-  let userLang = (navigator.language || navigator.userLanguage).toLowerCase().split('-')[0];
-  if (!translations[userLang]) userLang = 'en';
-  const t = translations[userLang];
-
-  switch(appCache.status) {
-    case appCache.UNCACHED:
-      return;
-    case appCache.IDLE:
-      showMainContent();
-      break;
-    case appCache.CHECKING:
-      break;
-    case appCache.DOWNLOADING:
-      loaderText.innerText = t.loaderText || "Caching for Offline Use...";
-      appCache.onprogress = function(e) {
-        if (e.lengthComputable) {
-          const progress = (e.loaded / e.total) * 100;
-          progressBar.style.width = progress + '%';
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    updateStatus('🔄', 'Çevrimdışı mod kontrol ediliyor...');
+    navigator.serviceWorker.register('./sw.js')
+      .then(registration => {
+        console.log('ServiceWorker kaydı başarılı. Kapsam: ', registration.scope);
+        // Eğer zaten aktif bir Service Worker varsa, cache'lenmiş demektir.
+        if (registration.active) {
+          updateStatus('✔️', 'Önbellekten yüklendi!');
+          setTimeout(showMainContent, 1500);
         }
-      };
-      break;
-    case appCache.UPDATEREADY:
-      appCache.swapCache();
-      if (confirm(t.updateText || "A new version is available. Reload?")) {
-        window.location.reload();
-      } else {
-        showMainContent();
-      }
-      break;
-    case appCache.OBSOLETE:
-      alert("Manifest dosyası bulunamadı. Site çevrimdışı çalışmayacak.");
-      showMainContent();
-      return;
-    default:
-      showMainContent();
-      break;
-  }
+        registration.onupdatefound = () => {
+          const installingWorker = registration.installing;
+          installingWorker.onstatechange = () => {
+            if (installingWorker.state === 'installing') {
+              updateStatus('⏳', 'Dosyalar indiriliyor...');
+            } else if (installingWorker.state === 'installed') {
+              if (navigator.serviceWorker.controller) {
+                // Yeni içerik mevcut, güncelleme hazır.
+                updateStatus('✅', 'Site güncellendi! Yeniden başlatılıyor...');
+                setTimeout(() => window.location.reload(), 2000);
+              } else {
+                // İlk defa cache'leniyor.
+                updateStatus('✔️', 'Çevrimdışı kullanım için hazır!');
+                setTimeout(showMainContent, 2000);
+              }
+            }
+          };
+        };
+      }).catch(error => {
+        console.error('ServiceWorker kaydı başarısız: ', error);
+        updateStatus('❌', 'Hata! Çevrimdışı mod aktifleştirilemedi.');
+        // Hata durumunda bile 3 saniye sonra ana içeriği göster.
+        setTimeout(showMainContent, 3000);
+      });
+  });
+} else {
+  // Service worker desteklenmiyorsa
+  updateStatus('⚠️', 'Tarayıcı desteklemiyor. Çevrimdışı mod kullanılamaz.');
+  setTimeout(showMainContent, 3000);
 }
-
-function handleCacheError(e) {
-  alert("Cache hatası. Site çevrimdışı çalışmayabilir. İnternet bağlantınızı kontrol edin.");
-  showMainContent();
-}
-
-appCache.addEventListener('cached', handleCacheEvent, false);
-appCache.addEventListener('checking', handleCacheEvent, false);
-appCache.addEventListener('downloading', handleCacheEvent, false);
-appCache.addEventListener('error', handleCacheError, false);
-appCache.addEventListener('noupdate', handleCacheEvent, false);
-appCache.addEventListener('obsolete', handleCacheEvent, false);
-appCache.addEventListener('progress', handleCacheEvent, false);
-appCache.addEventListener('updateready', handleCacheEvent, false);
-
-// İlk yüklemede, hiçbir olay tetiklenmezse, IDLE durumunu kontrol et
-setTimeout(function() {
-  if (appCache.status === appCache.IDLE || appCache.status === appCache.UPDATEREADY || appCache.status === appCache.UNCACHED) {
-    showMainContent();
-  }
-}, 3000); // 3 saniye sonra hala yükleme ekranındaysa ana içeriği göster
 
 // Orijinal Fonksiyonlar
-try {
-  if(performance.navigation.type===1||performance.getEntriesByType("navigation")[0].type==="reload")
-    (document.exitFullscreen||document.webkitExitFullscreen||document.mozCancelFullScreen||document.msExitFullscreen).call(document);
-}catch{}
-
-function start(){
-  const e=document.documentElement;
-  (e.requestFullscreen||e.webkitRequestFullscreen||e.mozRequestFullScreen||e.msRequestFullscreen).call(e);
-  document.getElementById("startBtn").style.display="none";
-  document.getElementById("instruction").style.display="block";
-}
-
-function changeLang(){
-  const lang=document.getElementById('lang').value;
-  if(!translations[lang])return;
-  const t=translations[lang];
-  document.title=t.title;
-  document.getElementById('title').innerText=t.title;
-  document.getElementById('startBtn').innerText=t.startBtn;
-  document.getElementById('instruction').innerText=t.instruction;
-  document.getElementById('ellieLove').innerText=t.ellieLove;
-  document.getElementById('lightBtn').innerText=t.lightTheme||"Light Theme";
-  document.getElementById('darkBtn').innerText=t.darkTheme||"Dark Theme";
-  // Loader metnini de seçilen dile göre ayarla (eğer loader hala görünürse)
-  const loaderText = document.getElementById('loader-text');
-  if (loaderText) {
-      loaderText.innerText = t.loaderText || "Caching for Offline Use...";
-  }
-}
-
-function setThemeUI(theme) {
-    document.getElementById('lightBtn').classList.toggle('active', theme === "light");
-    document.getElementById('darkBtn').classList.toggle('active', theme === "dark");
-}
-
-function setTheme(theme){
-  if(theme==="light"){
-    document.body.classList.add("light-theme");
-  } else {
-    document.body.classList.remove("light-theme");
-  }
-  localStorage.setItem("theme",theme);
-  setThemeUI(theme);
-}
+const translations={ tr:{title:"PS4 12.50 WEBKIT CRASH TEST By Çınar Güney",startBtn:"Başlat",instruction:"OPTIONS tuşuna bas ve sayfayı yenile",ellieLove:"Ellie Çınarın Karısı",lightTheme:"Beyaz Tema",darkTheme:"Siyah Tema"}, en:{title:"PS4 12.50 WEBKIT CRASH TEST By Çınar Güney",startBtn:"Start",instruction:"Press OPTIONS and Refresh the Page",ellieLove:"Ellie, Çınar's Wife",lightTheme:"Light Theme",darkTheme:"Dark Theme"}, /* Diğer diller */ };
+try { if(performance.navigation.type===1||performance.getEntriesByType("navigation")[0].type==="reload") (document.exitFullscreen||document.webkitExitFullscreen||document.mozCancelFullScreen||document.msExitFullscreen).call(document); }catch(e){}
+function start(){ const e=document.documentElement; (e.requestFullscreen||e.webkitRequestFullscreen||e.mozRequestFullScreen||e.msRequestFullscreen).call(e); document.getElementById("startBtn").style.display="none"; document.getElementById("instruction").style.display="block"; }
+function changeLang(){ const lang=document.getElementById('lang').value; if(!translations[lang])return; const t=translations[lang]; document.title=t.title; document.getElementById('title').innerText=t.title; document.getElementById('startBtn').innerText=t.startBtn; document.getElementById('instruction').innerText=t.instruction; document.getElementById('ellieLove').innerText=t.ellieLove; document.getElementById('lightBtn').innerText=t.lightTheme||"Light Theme"; document.getElementById('darkBtn').innerText=t.darkTheme||"Dark Theme"; }
+function setTheme(theme){ if(theme==="light"){ document.body.classList.add("light-theme"); document.body.classList.remove("dark-theme"); } else { document.body.classList.remove("light-theme"); document.body.classList.add("dark-theme"); } localStorage.setItem("theme",theme); document.getElementById('lightBtn').classList.toggle('active',theme==="light"); document.getElementById('darkBtn').classList.toggle('active',theme==="dark"); }
+document.addEventListener('DOMContentLoaded',()=>{ const select=document.getElementById('lang'); let userLang=(navigator.language||navigator.userLanguage).toLowerCase().split('-')[0]; if(!translations[userLang])userLang='en'; select.value=userLang; changeLang(); setTheme(localStorage.getItem("theme")||"dark"); });
 </script>
 </body>
 </html>
