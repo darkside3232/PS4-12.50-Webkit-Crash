@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" manifest="cache.manifest">
 <head>
 <meta charset="utf-8" />
 <title>PS4 12.50 WEBKIT CRASH TEST By Çınar Güney</title>
@@ -67,6 +67,20 @@
   }
 </style>
 <script>
+// Çevrimdışı Cache güncelleme bildirimleri için script
+window.addEventListener('load', function(e) {
+  if (window.applicationCache) {
+    window.applicationCache.addEventListener('updateready', function(e) {
+      if (window.applicationCache.status == window.applicationCache.UPDATEREADY) {
+        // Tarayıcı yeni bir cache indirdi.
+        if (confirm('Sitenin yeni bir sürümü mevcut. Yüklemek için sayfayı yenileyin.')) {
+          window.location.reload();
+        }
+      }
+    }, false);
+  }
+}, false);
+
 const translations={
   tr:{title:"PS4 12.50 WEBKIT CRASH TEST By Çınar Güney",startBtn:"Başlat",instruction:"OPTIONS tuşuna bas ve sayfayı yenile",ellieLove:"Ellie Çınarın Karısı",lightTheme:"Beyaz Tema",darkTheme:"Siyah Tema"},
   en:{title:"PS4 12.50 WEBKIT CRASH TEST By Çınar Güney",startBtn:"Start",instruction:"Press OPTIONS and Refresh the Page",ellieLove:"Ellie, Çınar's Wife",lightTheme:"Light Theme",darkTheme:"Dark Theme"},
@@ -78,7 +92,7 @@ const translations={
   ar:{title:"اختبار تحطم WEBKIT PS4 12.50 بواسطة Çınar Güney",startBtn:"ابدأ",instruction:"اضغط OPTIONS وقم بتحديث الصفحة",ellieLove:"إيلي، زوجة جينار",lightTheme:"الوضع الفاتح",darkTheme:"الوضع الداكن"},
   zh:{title:"PS4 12.50 WEBKIT 崩溃测试 作者 Çınar Güney",startBtn:"开始",instruction:"按 OPTIONS 并刷新页面",ellieLove:"Ellie，Çınar 的妻子",lightTheme:"浅色主题",darkTheme:"深色主题"},
   ja:{title:"PS4 12.50 WEBKITクラッシュテスト 作成者 Çınar Güney",startBtn:"開始",instruction:"OPTIONSを押してページを更新してください",ellieLove:"エリー、Çınarの妻",lightTheme:"ライトテーマ",darkTheme:"ダークテーマ"},
-  ko:{title:"PS4 12.50 WEBKIT 크래시 테스트 작성자 Çınar Güney",startBtn:"시작",instruction:"OPTIONS를 누르고 페이지를 새로고침하세요",ellieLove:"엘리, Çınar의 아내",lightTheme:"라이트 테마",darkTheme:"다크 테마"},
+  ko:{title:"PS4 12.50 WEBKIT 크래시 테스트 작성자 Çınar Güney",startBtn:"시작",instruction:"OPTIONS를 누르고 페이지를 새로고침하세요",ellieLove:"엘리, Çınar의 아내",lightTheme:"라이트 테ма",darkTheme:"다크 테마"},
   pt:{title:"TESTE DE CRASH WEBKIT PS4 12.50 Por Çınar Güney",startBtn:"Iniciar",instruction:"Pressione OPTIONS e atualize a página",ellieLove:"Ellie, esposa de Çınar",lightTheme:"Tema Claro",darkTheme:"Tema Escuro"}
 };
 
@@ -137,7 +151,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <div class="ellieLove" id="ellieLove">Ellie Çınarın Karısı</div>
 <div id="languageSelector">
   <select id="lang" onchange="changeLang()">
-    <option value="tr">Türkçe</option>
+    <option value="tr">Türçe</option>
     <option value="en" selected>English</option>
     <option value="es">Español</option>
     <option value="fr">Français</option>
