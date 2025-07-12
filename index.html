@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>PS4 12.50 WEBKIT CRASH TEST By Çınar Güney</title>
+<title>PS4 12.50 WebKit Crash PoC by Çınar Güney</title>
 <style>
   body {
     background:#000; color:#0f0; font-family: monospace; padding:1em; text-align:center; margin:0;
@@ -24,16 +24,13 @@
     33%{color:#0f0;}
     66%{color:#00f;}
   }
-  #selectors {
+  #languageSelector {
     position: fixed; bottom:20px; left:20px; background:#111; color:#0f0;
     border:1px solid #0f0; border-radius:8px; padding:5px 10px;
     font-family: monospace; user-select:none; z-index:9999;
-    display:flex; align-items:center; gap:20px;
+    display:flex; align-items:center; gap:8px;
   }
-  #selectors label {
-    user-select:none;
-  }
-  #languageSelector select, #themeSelector select {
+  #languageSelector select {
     background:#111; color:#0f0; border:none;
     font-family: monospace; font-size:14px; cursor:pointer; outline:none;
   }
@@ -53,10 +50,10 @@
   body.light-theme .ellieLove {
     color:#a00;
   }
-  body.light-theme #selectors {
+  body.light-theme #languageSelector {
     background:#eee; color:#060; border-color:#060;
   }
-  body.light-theme #languageSelector select, body.light-theme #themeSelector select {
+  body.light-theme #languageSelector select {
     background:#eee; color:#060;
   }
   body.light-theme .themeBtn {
@@ -68,238 +65,50 @@
   body.light-theme #startBtn {
     background:#060; color:#fff;
   }
-  #deviceWarning {
-    position: fixed; top:0; left:0; width:100%; background:#900; color:#fff; font-weight:bold; padding:10px 0; font-family: monospace;
-    display:none;
-    z-index:99999;
-  }
-  #webkitInfo {
-    max-width:600px; margin: 2em auto; font-size:14px; color:#0f0; background:#111; padding:1em; border-radius:8px; font-family: monospace;
-    text-align: left;
-  }
-  #versionInfo {
-    position: fixed; bottom:70px; right:20px; background:#111; color:#0f0; border:1px solid #0f0; padding:5px 10px; font-family: monospace; border-radius:5px;
-  }
 </style>
 <script>
-const translations = {
-  tr: {
-    title: "PS4 12.50 WEBKIT ÇÖKME TESTİ By Çınar Güney",
-    startBtn: "Başlat",
-    instruction: "OPTIONS tuşuna bas ve sayfayı yenile",
-    ellieLove: "Ellie, Çınar'ın Karısı",
-    lightTheme: "Açık Tema",
-    darkTheme: "Karanlık Tema",
-    languageLabel: "Dil:",
-    themeLabel: "Tema:",
-    webkitTitle: "WebKit Hakkında",
-    webkitInfo: `WebKit, PS4 sistem tarayıcısında kullanılan tarayıcı motorudur. Bu test sitesi, PS4 12.50 sürümündeki WebKit motorundaki bir hatayı kullanarak, tam ekran modundayken sayfa yenileme sonrası çökmeye neden olur. Sadece test ve araştırma amaçlıdır. Lütfen sorumlu şekilde kullanınız.`,
-    deviceWarning: "⚠️ Bu site sadece PS4 içindir. Diğer cihazlarda sorun çıkabilir.",
-    ps4VersionDetected: "Algılanan PS4 Yazılım Sürümü: ",
-    ps4VersionNotDetected: "PS4 sürümü algılanamadı."
-  },
-  en: {
-    title: "PS4 12.50 WEBKIT CRASH TEST By Çınar Güney",
-    startBtn: "Start",
-    instruction: "Press OPTIONS and Refresh the Page",
-    ellieLove: "Ellie, Çınar's Wife",
-    lightTheme: "Light Theme",
-    darkTheme: "Dark Theme",
-    languageLabel: "Language:",
-    themeLabel: "Theme:",
-    webkitTitle: "About WebKit",
-    webkitInfo: `WebKit is the browser engine used by the PS4 system browser. This test site exploits a bug in the WebKit engine of PS4 firmware 12.50 causing a crash when refreshing the page after fullscreen mode. Intended only for testing and research. Please use responsibly.`,
-    deviceWarning: "⚠️ This site is for PS4 only. You may experience issues on other devices.",
-    ps4VersionDetected: "Detected PS4 Firmware: ",
-    ps4VersionNotDetected: "PS4 version not detected."
-  },
-  es: {
-    title: "PRUEBA DE FALLA WEBKIT PS4 12.50 Por Çınar Güney",
-    startBtn: "Iniciar",
-    instruction: "Presiona OPTIONS y refresca la página",
-    ellieLove: "Ellie, esposa de Çınar",
-    lightTheme: "Tema Claro",
-    darkTheme: "Tema Oscuro",
-    languageLabel: "Idioma:",
-    themeLabel: "Tema:",
-    webkitTitle: "Acerca de WebKit",
-    webkitInfo: `WebKit es el motor del navegador usado por el navegador del sistema PS4. Este sitio de prueba explota un error en el motor WebKit del firmware PS4 12.50 causando un fallo al actualizar la página después del modo de pantalla completa. Solo para pruebas e investigación. Úselo con responsabilidad.`,
-    deviceWarning: "⚠️ Este sitio es solo para PS4. Puede tener problemas en otros dispositivos.",
-    ps4VersionDetected: "Firmware PS4 detectado: ",
-    ps4VersionNotDetected: "Versión de PS4 no detectada."
-  },
-  fr: {
-    title: "TEST DE CRASH WEBKIT PS4 12.50 Par Çınar Güney",
-    startBtn: "Démarrer",
-    instruction: "Appuyez sur OPTIONS et rafraîchissez la page",
-    ellieLove: "Ellie, la femme de Çınar",
-    lightTheme: "Thème Clair",
-    darkTheme: "Thème Sombre",
-    languageLabel: "Langue :",
-    themeLabel: "Thème :",
-    webkitTitle: "À propos de WebKit",
-    webkitInfo: `WebKit est le moteur du navigateur utilisé par le navigateur système PS4. Ce site de test exploite un bug dans le moteur WebKit du firmware PS4 12.50 provoquant un plantage lors du rafraîchissement après le mode plein écran. Destiné uniquement aux tests et à la recherche. Utilisez-le de manière responsable.`,
-    deviceWarning: "⚠️ Ce site est uniquement pour PS4. Vous pouvez rencontrer des problèmes sur d'autres appareils.",
-    ps4VersionDetected: "Firmware PS4 détecté : ",
-    ps4VersionNotDetected: "Version PS4 non détectée."
-  },
-  de: {
-    title: "PS4 12.50 WEBKIT CRASH TEST Von Çınar Güney",
-    startBtn: "Starten",
-    instruction: "Drücke OPTIONS und lade die Seite neu",
-    ellieLove: "Ellie, Çınars Ehefrau",
-    lightTheme: "Helles Thema",
-    darkTheme: "Dunkles Thema",
-    languageLabel: "Sprache:",
-    themeLabel: "Thema:",
-    webkitTitle: "Über WebKit",
-    webkitInfo: `WebKit ist die Browser-Engine des PS4-Systembrowsers. Diese Testseite nutzt einen Fehler im WebKit-Motor der PS4-Firmware 12.50, der beim Aktualisieren nach dem Vollbildmodus einen Absturz verursacht. Nur für Tests und Forschung. Bitte verantwortungsbewusst verwenden.`,
-    deviceWarning: "⚠️ Diese Seite ist nur für PS4. Auf anderen Geräten können Probleme auftreten.",
-    ps4VersionDetected: "Erkannte PS4-Firmware: ",
-    ps4VersionNotDetected: "PS4-Version nicht erkannt."
-  },
-  it: {
-    title: "TEST WEBKIT PS4 12.50 Di Çınar Güney",
-    startBtn: "Avvia",
-    instruction: "Premi OPTIONS e ricarica la pagina",
-    ellieLove: "Ellie, la moglie di Çınar",
-    lightTheme: "Tema Chiaro",
-    darkTheme: "Tema Scuro",
-    languageLabel: "Lingua:",
-    themeLabel: "Tema:",
-    webkitTitle: "Informazioni su WebKit",
-    webkitInfo: `WebKit è il motore del browser usato dal browser di sistema PS4. Questo sito di test sfrutta un bug nel motore WebKit del firmware PS4 12.50 causando un crash durante l'aggiornamento dopo la modalità a schermo intero. Solo per test e ricerca. Usare responsabilmente.`,
-    deviceWarning: "⚠️ Questo sito è solo per PS4. Potresti riscontrare problemi su altri dispositivi.",
-    ps4VersionDetected: "Firmware PS4 rilevato: ",
-    ps4VersionNotDetected: "Versione PS4 non rilevata."
-  },
-  ru: {
-    title: "ТЕСТ СБОЯ WEBKIT PS4 12.50 От Çınar Güney",
-    startBtn: "Старт",
-    instruction: "Нажмите OPTIONS и обновите страницу",
-    ellieLove: "Элли, жена Чынара",
-    lightTheme: "Светлая тема",
-    darkTheme: "Тёмная тема",
-    languageLabel: "Язык:",
-    themeLabel: "Тема:",
-    webkitTitle: "О WebKit",
-    webkitInfo: `WebKit — движок браузера, используемый системным браузером PS4. Этот тестовый сайт использует ошибку WebKit в прошивке PS4 12.50, вызывая сбой при обновлении страницы после полноэкранного режима. Только для тестирования и исследований. Используйте ответственно.`,
-    deviceWarning: "⚠️ Этот сайт предназначен только для PS4. На других устройствах возможны проблемы.",
-    ps4VersionDetected: "Обнаружена прошивка PS4: ",
-    ps4VersionNotDetected: "Прошивка PS4 не обнаружена."
-  },
-  ar: {
-    title: "اختبار تحطم WEBKIT PS4 12.50 بواسطة Çınar Güney",
-    startBtn: "ابدأ",
-    instruction: "اضغط OPTIONS وقم بتحديث الصفحة",
-    ellieLove: "إيلي، زوجة جينار",
-    lightTheme: "الوضع الفاتح",
-    darkTheme: "الوضع الداكن",
-    languageLabel: "اللغة:",
-    themeLabel: "السمة:",
-    webkitTitle: "حول WebKit",
-    webkitInfo: `WebKit هو محرك المتصفح المستخدم في متصفح نظام PS4. يستغل هذا الموقع اختبار خطأ في محرك WebKit بإصدار PS4 12.50 يسبب تعطل عند تحديث الصفحة بعد وضع ملء الشاشة. للاختبار والبحث فقط. الرجاء الاستخدام بمسؤولية.`,
-    deviceWarning: "⚠️ هذا الموقع مخصص فقط لـ PS4. قد تواجه مشاكل على أجهزة أخرى.",
-    ps4VersionDetected: "إصدار PS4 المكتشف: ",
-    ps4VersionNotDetected: "لم يتم اكتشاف إصدار PS4."
-  },
-  zh: {
-    title: "PS4 12.50 WEBKIT 崩溃测试 作者 Çınar Güney",
-    startBtn: "开始",
-    instruction: "按 OPTIONS 并刷新页面",
-    ellieLove: "Ellie，Çınar 的妻子",
-    lightTheme: "浅色主题",
-    darkTheme: "深色主题",
-    languageLabel: "语言:",
-    themeLabel: "主题:",
-    webkitTitle: "关于 WebKit",
-    webkitInfo: `WebKit 是 PS4 系统浏览器使用的浏览器引擎。此测试站点利用 PS4 固件 12.50 中 WebKit 引擎的一个漏洞，导致全屏后刷新页面时崩溃。仅供测试和研究。请负责任地使用。`,
-    deviceWarning: "⚠️ 本站点仅针对 PS4 设计，其他设备可能存在问题。",
-    ps4VersionDetected: "检测到的 PS4 固件版本: ",
-    ps4VersionNotDetected: "未检测到 PS4 版本。"
-  },
-  ja: {
-    title: "PS4 12.50 WEBKITクラッシュテスト 作成者 Çınar Güney",
-    startBtn: "開始",
-    instruction: "OPTIONSを押してページを更新してください",
-    ellieLove: "エリー、Çınarの妻",
-    lightTheme: "ライトテーマ",
-    darkTheme: "ダークテーマ",
-    languageLabel: "言語:",
-    themeLabel: "テーマ:",
-    webkitTitle: "WebKitについて",
-    webkitInfo: `WebKitはPS4システムブラウザで使用されているブラウザエンジンです。このテストサイトは、PS4ファームウェア12.50のWebKitエンジンのバグを利用して、フルスクリーン後のページ更新時にクラッシュを引き起こします。テストと研究用のみ。責任を持って使用してください。`,
-    deviceWarning: "⚠️ このサイトはPS4専用です。他のデバイスでは問題が発生する場合があります。",
-    ps4VersionDetected: "検出されたPS4ファームウェア: ",
-    ps4VersionNotDetected: "PS4バージョンが検出されませんでした。"
-  },
-  ko: {
-    title: "PS4 12.50 WEBKIT 크래시 테스트 작성자 Çınar Güney",
-    startBtn: "시작",
-    instruction: "OPTIONS를 누르고 페이지를 새로고침하세요",
-    ellieLove: "엘리, Çınar의 아내",
-    languageLabel: "언어:",
-    themeLabel: "테마:",
-    webkitTitle: "WebKit 정보",
-    webkitInfo: `WebKit은 PS4 시스템 브라우저에서 사용하는 브라우저 엔진입니다. 이 테스트 사이트는 PS4 펌웨어 12.50의 WebKit 엔진의 버그를 이용하여 전체 화면 후 페이지 새로고침 시 충돌을 일으킵니다. 테스트 및 연구용으로만 사용하세요.`,
-    deviceWarning: "⚠️ 이 사이트는 PS4 전용입니다. 다른 기기에서는 문제가 발생할 수 있습니다.",
-    ps4VersionDetected: "감지된 PS4 펌웨어: ",
-    ps4VersionNotDetected: "PS4 버전이 감지되지 않았습니다."
-  },
-  pt: {
-    title: "TESTE DE CRASH WEBKIT PS4 12.50 Por Çınar Güney",
-    startBtn: "Iniciar",
-    instruction: "Pressione OPTIONS e atualize a página",
-    ellieLove: "Ellie, esposa de Çınar",
-    lightTheme: "Tema Claro",
-    darkTheme: "Tema Escuro",
-    languageLabel: "Idioma:",
-    themeLabel: "Tema:",
-    webkitTitle: "Sobre o WebKit",
-    webkitInfo: `WebKit é o motor de navegador usado pelo navegador do sistema PS4. Este site de teste explora um bug no motor WebKit do firmware PS4 12.50 que causa uma falha ao atualizar a página após o modo de tela cheia. Apenas para teste e pesquisa. Use com responsabilidade.`,
-    deviceWarning: "⚠️ Este site é apenas para PS4. Pode haver problemas em outros dispositivos.",
-    ps4VersionDetected: "Firmware PS4 detectado: ",
-    ps4VersionNotDetected: "Versão do PS4 não detectada."
-  }
+const translations={
+  tr:{title:"PS4 12.50 WEBKIT CRASH TEST By Çınar Güney",startBtn:"Başlat",instruction:"OPTIONS tuşuna bas ve sayfayı yenile",ellieLove:"Ellie Çınarın Karısı",lightTheme:"Beyaz Tema",darkTheme:"Siyah Tema"},
+  en:{title:"PS4 12.50 WEBKIT CRASH TEST By Çınar Güney",startBtn:"Start",instruction:"Press OPTIONS and Refresh the Page",ellieLove:"Ellie, Çınar's Wife",lightTheme:"Light Theme",darkTheme:"Dark Theme"},
+  es:{title:"PRUEBA DE FALLA WEBKIT PS4 12.50 Por Çınar Güney",startBtn:"Iniciar",instruction:"Presiona OPTIONS y refresca la página",ellieLove:"Ellie, esposa de Çınar",lightTheme:"Tema Claro",darkTheme:"Tema Oscuro"},
+  fr:{title:"TEST DE CRASH WEBKIT PS4 12.50 Par Çınar Güney",startBtn:"Démarrer",instruction:"Appuyez sur OPTIONS et rafraîchissez la page",ellieLove:"Ellie, la femme de Çınar",lightTheme:"Thème Clair",darkTheme:"Thème Sombre"},
+  de:{title:"PS4 12.50 WEBKIT CRASH TEST Von Çınar Güney",startBtn:"Starten",instruction:"Drücke OPTIONS und lade die Seite neu",ellieLove:"Ellie, Çınars Ehefrau",lightTheme:"Helles Thema",darkTheme:"Dunkles Thema"},
+  it:{title:"TEST WEBKIT PS4 12.50 Di Çınar Güney",startBtn:"Avvia",instruction:"Premi OPTIONS e ricarica la pagina",ellieLove:"Ellie, la moglie di Çınar",lightTheme:"Tema Chiaro",darkTheme:"Tema Scuro"},
+  ru:{title:"ТЕСТ СБОЯ WEBKIT PS4 12.50 От Çınar Güney",startBtn:"Старт",instruction:"Нажмите OPTIONS и обновите страницу",ellieLove:"Элли, жена Чынара",lightTheme:"Светлая тема",darkTheme:"Тёмная тема"},
+  ar:{title:"اختبار تحطم WEBKIT PS4 12.50 بواسطة Çınar Güney",startBtn:"ابدأ",instruction:"اضغط OPTIONS وقم بتحديث الصفحة",ellieLove:"إيلي، زوجة جينار",lightTheme:"الوضع الفاتح",darkTheme:"الوضع الداكن"},
+  zh:{title:"PS4 12.50 WEBKIT 崩溃测试 作者 Çınar Güney",startBtn:"开始",instruction:"按 OPTIONS 并刷新页面",ellieLove:"Ellie，Çınar 的妻子",lightTheme:"浅色主题",darkTheme:"深色主题"},
+  ja:{title:"PS4 12.50 WEBKITクラッシュテスト 作成者 Çınar Güney",startBtn:"開始",instruction:"OPTIONSを押してページを更新してください",ellieLove:"エリー、Çınarの妻",lightTheme:"ライトテーマ",darkTheme:"ダークテーマ"},
+  ko:{title:"PS4 12.50 WEBKIT 크래시 테스트 작성자 Çınar Güney",startBtn:"시작",instruction:"OPTIONS를 누르고 페이지를 새로고침하세요",ellieLove:"엘리, Çınar의 아내",lightTheme:"라이트 테마",darkTheme:"다크 테마"},
+  pt:{title:"TESTE DE CRASH WEBKIT PS4 12.50 Por Çınar Güney",startBtn:"Iniciar",instruction:"Pressione OPTIONS e atualize a página",ellieLove:"Ellie, esposa de Çınar",lightTheme:"Tema Claro",darkTheme:"Tema Escuro"}
 };
 
-function setText(lang) {
-  const t = translations[lang] || translations['en'];
-  document.title = t.title;
-  document.getElementById('title').textContent = t.title;
-  document.getElementById('startBtn').textContent = t.startBtn;
-  document.getElementById('instruction').textContent = t.instruction;
-  document.getElementById('ellieLove').textContent = t.ellieLove;
-  document.getElementById('languageLabel').textContent = t.languageLabel;
-  document.getElementById('themeLabel').textContent = t.themeLabel;
-  document.getElementById('webkitTitle').textContent = t.webkitTitle;
-  document.getElementById('webkitText').textContent = t.webkitInfo;
-  document.getElementById('deviceWarning').textContent = t.deviceWarning;
-
-  // Güncelle themeSelect seçenek metinleri
-  const themeSelect = document.getElementById('themeSelect');
-  for(let i=0; i<themeSelect.options.length; i++){
-    const val = themeSelect.options[i].value;
-    if(val === 'dark') themeSelect.options[i].text = t.darkTheme;
-    else if(val === 'light') themeSelect.options[i].text = t.lightTheme;
-  }
-}
+try {
+  if(performance.navigation.type===1||performance.getEntriesByType("navigation")[0].type==="reload")
+    (document.exitFullscreen||document.webkitExitFullscreen||document.mozCancelFullScreen||document.msExitFullscreen).call(document);
+}catch{}
 
 function start(){
-  const e = document.documentElement;
-  (e.requestFullscreen || e.webkitRequestFullscreen || e.mozRequestFullScreen || e.msRequestFullscreen).call(e);
-  document.getElementById("startBtn").style.display = "none";
-  document.getElementById("instruction").style.display = "block";
+  const e=document.documentElement;
+  (e.requestFullscreen||e.webkitRequestFullscreen||e.mozRequestFullScreen||e.msRequestFullscreen).call(e);
+  document.getElementById("startBtn").style.display="none";
+  document.getElementById("instruction").style.display="block";
 }
 
 function changeLang(){
-  const lang = document.getElementById('lang').value;
-  setText(lang);
-  checkDevice();
+  const lang=document.getElementById('lang').value;
+  if(!translations[lang])return;
+  const t=translations[lang];
+  document.title=t.title;
+  document.getElementById('title').innerText=t.title;
+  document.getElementById('startBtn').innerText=t.startBtn;
+  document.getElementById('instruction').innerText=t.instruction;
+  document.getElementById('ellieLove').innerText=t.ellieLove;
+  document.getElementById('lightBtn').innerText=t.lightTheme||"Light Theme";
+  document.getElementById('darkBtn').innerText=t.darkTheme||"Dark Theme";
 }
 
 function setTheme(theme){
-  if(theme === "light"){
+  if(theme==="light"){
     document.body.classList.add("light-theme");
     document.body.classList.remove("dark-theme");
   } else {
@@ -307,64 +116,29 @@ function setTheme(theme){
     document.body.classList.add("dark-theme");
   }
   localStorage.setItem("theme",theme);
-  document.getElementById('themeSelect').value = theme;
-}
-
-function changeThemeSelect(){
-  const sel = document.getElementById('themeSelect');
-  setTheme(sel.value);
-}
-
-function checkDevice(){
-  const ua = navigator.userAgent.toLowerCase();
-  const isPS4 = ua.includes('playstation 4');
-  const lang = document.getElementById('lang').value;
-  const t = translations[lang] || translations['en'];
-  const warningDiv = document.getElementById('deviceWarning');
-
-  if(!isPS4){
-    warningDiv.style.display = 'block';
-  } else {
-    warningDiv.style.display = 'none';
-  }
-
-  let versionInfo = t.ps4VersionNotDetected;
-  const verMatch = ua.match(/playstation 4.*?(\d+(?:\.\d+)+)/);
-  if(verMatch){
-    versionInfo = t.ps4VersionDetected + verMatch[1];
-  }
-  document.getElementById('versionInfo').textContent = versionInfo;
+  document.getElementById('lightBtn').classList.toggle('active',theme==="light");
+  document.getElementById('darkBtn').classList.toggle('active',theme==="dark");
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
-  // Dil seçimi, varsayılan kullanıcı diline göre
-  const select = document.getElementById('lang');
-  let userLang = (navigator.language || navigator.userLanguage || 'en').toLowerCase().split('-')[0];
-  if(!translations[userLang]) userLang = 'en';
-  select.value = userLang;
-  setText(userLang);
-
-  // Tema ayarı (localStorage)
-  const savedTheme = localStorage.getItem("theme") || "dark";
-  setTheme(savedTheme);
-
-  checkDevice();
+  const select=document.getElementById('lang');
+  let userLang=(navigator.language||navigator.userLanguage).toLowerCase().split('-')[0];
+  if(!translations[userLang])userLang='en';
+  select.value=userLang;
+  changeLang();
+  setTheme(localStorage.getItem("theme")||"dark");
 });
 </script>
 </head>
 <body>
-<div id="deviceWarning" style="display:none;"></div>
-
 <h1 id="title">PS4 12.50 WEBKIT CRASH TEST By Çınar Güney</h1>
 <button id="startBtn" onclick="start()">Start</button>
-<div id="instruction" style="display:none;">Press OPTIONS and Refresh the Page</div>
-<div class="ellieLove" id="ellieLove">Ellie, Çınar's Wife</div>
-
-<div id="selectors">
-  <label id="languageLabel" for="lang">Language:</label>
+<div id="instruction">Press OPTIONS and Refresh the Page</div>
+<div class="ellieLove" id="ellieLove">Ellie Çınarın Karısı</div>
+<div id="languageSelector">
   <select id="lang" onchange="changeLang()">
     <option value="tr">Türkçe</option>
-    <option value="en">English</option>
+    <option value="en" selected>English</option>
     <option value="es">Español</option>
     <option value="fr">Français</option>
     <option value="de">Deutsch</option>
@@ -376,22 +150,8 @@ document.addEventListener('DOMContentLoaded',()=>{
     <option value="ko">한국어</option>
     <option value="pt">Português</option>
   </select>
-
-  <label id="themeLabel" for="themeSelect">Theme:</label>
-  <select id="themeSelect" onchange="changeThemeSelect()">
-    <option value="dark">Dark Theme</option>
-    <option value="light">Light Theme</option>
-  </select>
+  <button id="lightBtn" class="themeBtn" onclick="setTheme('light')">Light Theme</button>
+  <button id="darkBtn" class="themeBtn active" onclick="setTheme('dark')">Dark Theme</button>
 </div>
-
-<div id="versionInfo" style="position: fixed; bottom:70px; right:20px; background:#111; color:#0f0; border:1px solid #0f0; padding:5px 10px; font-family: monospace; border-radius:5px;"></div>
-
-<div id="webkitInfo">
-  <h3 id="webkitTitle">About WebKit</h3>
-  <p id="webkitText">
-    WebKit is the browser engine used by the PS4 system browser. This test site exploits a bug in the WebKit engine of PS4 firmware 12.50 causing a crash when refreshing the page after fullscreen mode. Intended only for testing and research. Please use responsibly.
-  </p>
-</div>
-
 </body>
 </html>
